@@ -24,7 +24,7 @@ import sklearn.svm
 import sklearn.externals
 import sklearn.model_selection
 
-import utils
+import Utils
 import losses
 import networks
 
@@ -232,9 +232,9 @@ class TimeSeriesEncoderClassifier(sklearn.base.BaseEstimator,
             train_size = numpy.shape(X)[0]
             ratio = train_size // nb_classes
 
-        train_torch_dataset = utils.Dataset(X)
+        train_torch_dataset = Utils.Dataset(X)
         train_generator = torch.utils.data.DataLoader(
-            train_torch_dataset, batch_size=self.batch_size, shuffle=True
+            train, batch_size=self.batch_size, shuffle=True
         )
 
         max_score = 0
@@ -334,9 +334,9 @@ class TimeSeriesEncoderClassifier(sklearn.base.BaseEstimator,
         # Check if the given time series have unequal lengths
         varying = bool(numpy.isnan(numpy.sum(X)))
 
-        test = utils.Dataset(X)
+        test = Utils.Dataset(X)
         test_generator = torch.utils.data.DataLoader(
-            test, batch_size=batch_size if not varying else 1
+            X, batch_size=batch_size if not varying else 1
         )
         features = numpy.zeros((numpy.shape(X)[0], self.out_channels))
         self.encoder = self.encoder.eval()
@@ -529,7 +529,7 @@ class CausalCNNEncoderClassifier(TimeSeriesEncoderClassifier):
         # Check if the given time series have unequal lengths
         varying = bool(numpy.isnan(numpy.sum(X)))
 
-        test = utils.Dataset(X)
+        test = Utils.Dataset(X)
         test_generator = torch.utils.data.DataLoader(
             test, batch_size=batch_size if not varying else 1
         )

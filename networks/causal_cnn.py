@@ -126,7 +126,7 @@ class CausalConvolutionBlock(torch.nn.Module):
         ) if in_channels != out_channels else None
 
         # Final activation function
-        self.relu = torch.nn.LeakyReLU() if final else None
+        self.relu = torch.nn.LeakyReLU() if final else None #LeakyRelu has by default slope of 0.01
 
     def forward(self, x):
         out_causal = self.causal(x)
@@ -204,7 +204,7 @@ class CausalCNNEncoder(torch.nn.Module):
         )
         reduce_size = torch.nn.AdaptiveMaxPool1d(1)
         squeeze = SqueezeChannels()  # Squeezes the third dimension (time)
-        linear = torch.nn.Linear(reduced_size, out_channels)
+        linear = torch.nn.Linear(reduced_size, out_channels) # known issue, see: https://github.com/White-Link/UnsupervisedScalableRepresentationLearningTimeSeries/issues/22
         self.network = torch.nn.Sequential(
             causal_cnn, reduce_size, squeeze, linear
         )
