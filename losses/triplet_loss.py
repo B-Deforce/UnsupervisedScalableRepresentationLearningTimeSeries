@@ -18,6 +18,7 @@
 
 import torch
 import numpy
+from dtw import *
 
 
 class TripletLoss(torch.nn.modules.loss._Loss):
@@ -64,9 +65,23 @@ class TripletLoss(torch.nn.modules.loss._Loss):
         # For each batch element, we pick nb_random_samples possible random
         # time series in the training set (choice of batches from where the
         # negative examples will be sampled)
-        samples = numpy.random.choice(
-            train_size, size=(self.nb_random_samples, batch_size)
-        )
+        #samples = numpy.random.choice(
+        #    train_size, size=(self.nb_random_samples, batch_size)
+        #)
+        #samples = torch.LongTensor(samples)
+        
+        samples = numpy.zeros((self.nb_random_samples,batch_size)) # neg_examples x batch_size
+        
+        for j in range(batch_size): # batch_size
+            distances = []
+            for i in train:
+                alignment = dtw(numpy.squeeze(batch[j]), numpy.squeeze(i), keep_internals=False
+                                , step_pattern="asymmetric"
+                                ,distance_only=True)
+                distances.append(alignment.normalizedDistance)
+                
+            samples[:,j] = numpy.argsort(distances)[-self.nb_random_samples:].T # neg_examples
+        
         samples = torch.LongTensor(samples)
 
         # Choice of length of positive and negative samples
@@ -206,6 +221,36 @@ class TripletLossVaryingLength(torch.nn.modules.loss._Loss):
             train_size, size=(self.nb_random_samples, batch_size)
         )
         samples = torch.LongTensor(samples)
+
+        
+        
+        #OE = train
+        #
+        #open_begin
+        #
+        #open_end_begin
+        #
+        #samples = numpy.zeros((self.nb_random_samples,batch_size)) # neg_examples x batch_size
+        #
+        #for j in range(batch_size): # batch_size
+        #    distances = []
+        #    
+        #    # OE: open end, OB: open beginn, OBE: open-end-begin
+        #    OB = torch.isnan(batch[j])[0]
+        #    OE = OE = torch.isnan(batch[j])[-1]
+        #    OBE = OB * OE
+        #    
+        #    for i in train:
+        #        i = i.dropna() # check if measuring two short time series of same length with OE, OB== True works?
+        #        if OB ...
+        #        alignment = dtw(numpy.squeeze(batch[j]), numpy.squeeze(i), keep_internals=False
+        #                        ,step_pattern="asymmetric"
+        #                        ,distance_only=True) # how to incorporate open-end vs. open beginning
+        #        distances.append(alignment.normalizedDistance)
+        #        
+        #    samples[:,j] = numpy.argsort(distances)[-self.nb_random_samples:].T # neg_examples
+        #
+        #samples = torch.LongTensor(samples)
 
         # Computation of the lengths of the relevant time series
         with torch.no_grad():
